@@ -11,7 +11,7 @@ export const getProcessedFilesInExplorer = (
   return Array.from(files).map((file) => {
     return {
       file,
-      path: file.webkitRelativePath,
+      relativePath: file.webkitRelativePath,
     };
   });
 };

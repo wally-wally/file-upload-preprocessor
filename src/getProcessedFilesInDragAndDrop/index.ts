@@ -16,7 +16,7 @@ export const getProcessedFilesInDragAndDrop = (
       entries.forEach((entry) => {
         if (entry.isFile) {
           (entry as FileSystemFileEntry).file((file) =>
-            files.push({ file, path: entry.fullPath.slice(1) })
+            files.push({ file, relativePath: entry.fullPath.slice(1) })
           );
           return;
         }
@@ -31,13 +31,13 @@ export const getProcessedFilesInDragAndDrop = (
 
     // prechecker - 아무것도 없는 경우 null 예외 처리
     if (!entryInfo) {
-      files.push({ file: null, path: "" });
+      files.push({ file: null, relativePath: "" });
       return;
     }
 
     // 파일인 경우
     if (entryInfo.isFile) {
-      files.push({ file: item.getAsFile(), path: entryInfo.name });
+      files.push({ file: item.getAsFile(), relativePath: entryInfo.name });
       return;
     }
 
