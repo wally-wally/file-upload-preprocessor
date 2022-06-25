@@ -37,7 +37,7 @@ export const getProcessedFilesInDragAndDrop = (
 
     // 파일인 경우
     if (entryInfo.isFile) {
-      files.push({ file: item.getAsFile(), path: "" });
+      files.push({ file: item.getAsFile(), path: entryInfo.name });
       return;
     }
 
