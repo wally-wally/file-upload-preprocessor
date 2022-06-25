@@ -14,7 +14,7 @@ export const getProcessedFilesInDragAndDrop = (
   const getEntries = (entryInfo: FileSystemDirectoryEntry) => {
     entryInfo.createReader().readEntries((entries) => {
       entries.forEach((entry) => {
-        if (!entry.isDirectory) {
+        if (entry.isFile) {
           (entry as FileSystemFileEntry).file((file) =>
             files.push({ file, path: entry.fullPath.slice(1) })
           );
@@ -36,7 +36,7 @@ export const getProcessedFilesInDragAndDrop = (
     }
 
     // 파일인 경우
-    if (!entryInfo.isDirectory) {
+    if (entryInfo.isFile) {
       files.push({ file: item.getAsFile(), path: "" });
       return;
     }
