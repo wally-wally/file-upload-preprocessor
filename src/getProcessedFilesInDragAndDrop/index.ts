@@ -8,43 +8,42 @@ import { ProcessedFile } from "@/types";
 export const getProcessedFilesInDragAndDrop = (
   items: DataTransferItemList
 ): ProcessedFile[] => {
-  const files = [];
+  const files: ProcessedFile[] = [];
 
   /** 폴더 내부에 재귀로 돌면서 파일 추출 */
   const getEntries = (entryInfo: FileSystemDirectoryEntry) => {
     entryInfo.createReader().readEntries((entries) => {
-      for (const entry of entries) {
+      entries.forEach((entry) => {
         if (!entry.isDirectory) {
           (entry as FileSystemFileEntry).file((file) =>
             files.push({ file, path: entry.fullPath.slice(1) })
           );
-          continue;
+          return;
         }
 
         getEntries(entry as FileSystemDirectoryEntry);
-      }
+      });
     });
   };
 
-  for (let i = 0; i < Array.from(items).length; i += 1) {
-    const item = items[i];
+  Array.from(items).forEach((item) => {
     const entryInfo = item.webkitGetAsEntry();
 
     // prechecker - 아무것도 없는 경우 null 예외 처리
     if (!entryInfo) {
       files.push({ file: null, path: "" });
-      continue;
+      return;
     }
 
     // 파일인 경우
     if (!entryInfo.isDirectory) {
       files.push({ file: item.getAsFile(), path: "" });
-      continue;
+      return;
     }
 
     // 폴더인 경우
     getEntries(entryInfo as FileSystemDirectoryEntry);
-  }
+  });
 
   return files;
 };
