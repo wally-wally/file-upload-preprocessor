@@ -18,6 +18,8 @@
     "file-upload",
     "preprocessor"
   ],
+  "files": ["dist", "src"],
+  "typings": "dist/index.d.ts",
   "author": {
     "name": "wally-wally",
     "email": "wallys0213@gmail.com"
