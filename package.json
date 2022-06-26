@@ -18,7 +18,10 @@
     "file-upload",
     "preprocessor"
   ],
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "typings": "dist/index.d.ts",
   "author": {
     "name": "wally-wally",
@@ -40,7 +43,6 @@
     "@typescript-eslint/eslint-plugin": "^5.29.0",
     "@typescript-eslint/parser": "^5.29.0",
     "babel-loader": "^8.2.5",
-    "clean-webpack-plugin": "^4.0.0",
     "eslint": "^8.18.0",
     "eslint-config-prettier": "^8.5.0",
     "jest": "^28.1.1",

@@ -1,8 +1,5 @@
 const path = require("path");
 
-// 외부 플러그인
-const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-
 // 개발 환경 모드
 const mode = process.env.NODE_ENV || "development";
 
@@ -33,8 +30,8 @@ module.exports = {
     library: {
       type: "umd",
     },
+    clean: true,
   },
-  plugins: [new CleanWebpackPlugin()],
   resolve: {
     alias: {
       "@": aliasPoint,
