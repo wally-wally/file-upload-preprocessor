@@ -5,45 +5,69 @@ import { ProcessedFile } from "@/types";
  * @param items drop event 발생시 event.dataTransfer.items를 그대로 넘김
  * @returns 가공된 파일 리스트
  */
-export const getProcessedFilesInDragAndDrop = (
+export const getProcessedFilesInDragAndDrop = async (
   items: DataTransferItemList
-): ProcessedFile[] => {
+): Promise<ProcessedFile[]> => {
   const files: ProcessedFile[] = [];
 
-  /** 폴더 내부에 재귀로 돌면서 파일 추출 */
-  const getEntries = (entryInfo: FileSystemDirectoryEntry) => {
-    entryInfo.createReader().readEntries((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isFile) {
-          (entry as FileSystemFileEntry).file((file) =>
-            files.push({ file, relativePath: entry.fullPath.slice(1) })
-          );
-          return;
-        }
+  const getFileInSubDirectory = (entry: FileSystemFileEntry): Promise<File> => {
+    return new Promise((resolve) => entry.file(resolve));
+  };
 
-        getEntries(entry as FileSystemDirectoryEntry);
+  /** 비동기로 폴더 내부를 재귀 + 순회하면서 모든 파일들을 추출 */
+  const readEntriesAsync = (
+    reader: FileSystemDirectoryReader
+  ): Promise<FileSystemEntry[]> => {
+    return new Promise((resolve) => {
+      reader.readEntries(async (entries) => {
+        for await (const entry of entries) {
+          if (entry.isFile) {
+            const file = await getFileInSubDirectory(
+              entry as FileSystemFileEntry
+            );
+            files.push({ file, relativePath: entry.fullPath.slice(1) });
+            continue;
+          }
+
+          await getEntries(entry as FileSystemDirectoryEntry);
+        }
+        resolve(entries);
       });
     });
   };
 
-  Array.from(items).forEach((item) => {
-    const entryInfo = item.webkitGetAsEntry();
+  /** 폴더 내부에 있는 모든 파일 or 폴더 정보 추출 */
+  const getEntries = async (directoryEntry: FileSystemDirectoryEntry) => {
+    const reader = directoryEntry.createReader();
+
+    const readEntries = async () => {
+      const entries = await readEntriesAsync(reader);
+      if (entries.length > 0) {
+        await readEntries();
+      }
+    };
+
+    await readEntries();
+  };
+
+  for await (const item of Array.from(items)) {
+    const entry = item.webkitGetAsEntry();
 
     // prechecker - 아무것도 없는 경우 null 예외 처리
-    if (!entryInfo) {
+    if (!entry) {
       files.push({ file: null, relativePath: "" });
-      return;
+      continue;
     }
 
     // 파일인 경우
-    if (entryInfo.isFile) {
-      files.push({ file: item.getAsFile(), relativePath: entryInfo.name });
-      return;
+    if (entry.isFile) {
+      files.push({ file: item.getAsFile(), relativePath: entry.name });
+      continue;
     }
 
     // 폴더인 경우
-    getEntries(entryInfo as FileSystemDirectoryEntry);
-  });
+    await getEntries(entry as FileSystemDirectoryEntry);
+  }
 
   return files;
 };
