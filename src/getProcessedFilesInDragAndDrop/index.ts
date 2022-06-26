@@ -1,5 +1,9 @@
 import { ProcessedFile } from "@/types";
 
+let getProcessedFilesInDragAndDropTimerID: ReturnType<
+  typeof setTimeout
+> | null = null;
+
 /**
  * @description 드래그 앤 드롭을 통해 가져온 파일들을 가공하는 함수
  * @param items drop event 발생시 event.dataTransfer.items를 그대로 넘김
@@ -65,6 +69,13 @@ export const getProcessedFilesInDragAndDrop = async (
       getEntries(entry as FileSystemDirectoryEntry);
     }
 
-    resolve(files);
+    if (getProcessedFilesInDragAndDropTimerID) {
+      clearTimeout(getProcessedFilesInDragAndDropTimerID);
+    }
+
+    getProcessedFilesInDragAndDropTimerID = setTimeout(
+      () => resolve(files),
+      1000
+    );
   });
 };

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      h1,
+      h2 {
+        margin: 0;
+      }
+
+      .example {
+        margin-top: 20px;
+      }
+
+      label[for="file-upload"],
+      label[for="directory-upload"] {
+        display: inline-flex;
+        border: 1px solid #999;
+        border-radius: 2px;
+        padding: 5px;
+        cursor: pointer;
+      }
+
+      input.file-upload,
+      input.directory-upload {
+        display: none;
+      }
+
+      .explorer,
+      .dnd {
+        border: 1px solid #333;
+        height: 300px;
+        overflow: auto;
+        text-align: left;
+        line-height: 1.5;
+      }
+
+      .explorer > .file-info:not(:first-child),
+      .dnd > .file-info:not(:first-child) {
+        margin-top: 10px;
+      }
+
+      .dnd.active {
+        border: 1px dashed #2985db;
+        color: #2985db;
+        background-color: #f7fafe;
+      }
+    </style>
+    <title>file-upload-preprocessor</title>
+  </head>
+  <body>
+    <h1>file-upload-preprocessor example</h1>
+    <div class="example">
+      <h2>(1) 파일 탐색기</h2>
+      <div class="upload-btn-wrapper">
+        <label for="file-upload">파일 업로드</label>
+        <input type="file" multiple class="file-upload" id="file-upload" />
+        <label for="directory-upload">폴더 업로드</label>
+        <input
+          type="file"
+          webkitdirectory
+          directory
+          class="directory-upload"
+          id="directory-upload"
+        />
+      </div>
+      <div class="file-count-explorer">파일 개수: 0개</div>
+      <div class="explorer"></div>
+    </div>
+
+    <div class="example">
+      <h2>(2) 드래그 앤 드롭</h2>
+      <div class="file-count-dnd">파일 개수: 0개</div>
+      <div class="dnd">dnd zone</div>
+    </div>
+    <script type="module" src="./dist/index.min.js"></script>
+    <script>
+      function showFiles(files, target) {
+        document.querySelector(target).innerHTML = `
+          ${files
+            .map(
+              ({ file, relativePath }, index) =>
+                `<div class="file-info">${index + 1}. ${file.name}(${
+                  file.size
+                }[Byte]) - path: ${relativePath || "-"}</div>`
+            )
+            .join("")}
+        `;
+      }
+
+      function showFileCount(files, target) {
+        document.querySelector(
+          target
+        ).innerHTML = `파일 개수: ${files.length}개`;
+      }
+
+      // (1-1) 파일 탐색기 - 파일 타입
+      document
+        .querySelector(".file-upload")
+        .addEventListener("change", (event) => {
+          const files = getProcessedFilesInExplorer(event.target.files);
+
+          showFiles(files, ".explorer");
+          showFileCount(files, ".file-count-explorer");
+        });
+
+      // (1-2) 파일 탐색기 - 폴더 타입
+      document
+        .querySelector(".directory-upload")
+        .addEventListener("change", (event) => {
+          const files = getProcessedFilesInExplorer(event.target.files);
+
+          showFiles(files, ".explorer");
+          showFileCount(files, ".file-count-explorer");
+        });
+
+      // (2) 드래그 앤 드롭 - dragover event
+      document.querySelector(".dnd").addEventListener("dragover", (event) => {
+        event.preventDefault();
+        document.querySelector(".dnd").classList.add("active");
+      });
+
+      // (2) 드래그 앤 드롭 - dragleave event
+      document.querySelector(".dnd").addEventListener("dragleave", (event) => {
+        document.querySelector(".dnd").classList.remove("active");
+      });
+
+      // (2) 드래그 앤 드롭 - drop event
+      document.querySelector(".dnd").addEventListener("drop", async (event) => {
+        event.preventDefault();
+        document.querySelector(".dnd").classList.remove("active");
+
+        const files = await getProcessedFilesInDragAndDrop(
+          event.dataTransfer.items
+        );
+
+        showFiles(files, ".dnd");
+        showFileCount(files, ".file-count-dnd");
+      });
+    </script>
+  </body>
+</html>
