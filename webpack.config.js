@@ -12,7 +12,7 @@ const buildPoint = path.join(__dirname, "dist");
 const aliasPoint = path.join(__dirname, "src");
 
 module.exports = {
-  name: "eat-today",
+  name: "file-upload-preprocessor",
   mode,
   entry: entryPoint,
   module: {
