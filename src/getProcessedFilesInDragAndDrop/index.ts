@@ -11,12 +11,6 @@ export const getProcessedFilesInDragAndDrop = async (
   return new Promise((resolve) => {
     const files: ProcessedFile[] = [];
 
-    const getFileInSubDirectory = (
-      entry: FileSystemFileEntry
-    ): Promise<File> => {
-      return new Promise((resolve) => entry.file(resolve));
-    };
-
     /** 비동기로 폴더 내부를 재귀 + 순회하면서 모든 파일들을 추출 */
     const readEntriesAsync = (
       reader: FileSystemDirectoryReader
@@ -25,10 +19,9 @@ export const getProcessedFilesInDragAndDrop = async (
         reader.readEntries(async (entries) => {
           for await (const entry of entries) {
             if (entry.isFile) {
-              const file = await getFileInSubDirectory(
-                entry as FileSystemFileEntry
+              (entry as FileSystemFileEntry).file((file) =>
+                files.push({ file, relativePath: entry.fullPath.slice(1) })
               );
-              files.push({ file, relativePath: entry.fullPath.slice(1) });
               continue;
             }
 
