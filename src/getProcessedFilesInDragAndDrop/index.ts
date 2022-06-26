@@ -8,66 +8,70 @@ import { ProcessedFile } from "@/types";
 export const getProcessedFilesInDragAndDrop = async (
   items: DataTransferItemList
 ): Promise<ProcessedFile[]> => {
-  const files: ProcessedFile[] = [];
+  return new Promise((resolve) => {
+    const files: ProcessedFile[] = [];
 
-  const getFileInSubDirectory = (entry: FileSystemFileEntry): Promise<File> => {
-    return new Promise((resolve) => entry.file(resolve));
-  };
-
-  /** 비동기로 폴더 내부를 재귀 + 순회하면서 모든 파일들을 추출 */
-  const readEntriesAsync = (
-    reader: FileSystemDirectoryReader
-  ): Promise<FileSystemEntry[]> => {
-    return new Promise((resolve) => {
-      reader.readEntries(async (entries) => {
-        for await (const entry of entries) {
-          if (entry.isFile) {
-            const file = await getFileInSubDirectory(
-              entry as FileSystemFileEntry
-            );
-            files.push({ file, relativePath: entry.fullPath.slice(1) });
-            continue;
-          }
-
-          await getEntries(entry as FileSystemDirectoryEntry);
-        }
-        resolve(entries);
-      });
-    });
-  };
-
-  /** 폴더 내부에 있는 모든 파일 or 폴더 정보 추출 */
-  const getEntries = async (directoryEntry: FileSystemDirectoryEntry) => {
-    const reader = directoryEntry.createReader();
-
-    const readEntries = async () => {
-      const entries = await readEntriesAsync(reader);
-      if (entries.length > 0) {
-        await readEntries();
-      }
+    const getFileInSubDirectory = (
+      entry: FileSystemFileEntry
+    ): Promise<File> => {
+      return new Promise((resolve) => entry.file(resolve));
     };
 
-    await readEntries();
-  };
+    /** 비동기로 폴더 내부를 재귀 + 순회하면서 모든 파일들을 추출 */
+    const readEntriesAsync = (
+      reader: FileSystemDirectoryReader
+    ): Promise<FileSystemEntry[]> => {
+      return new Promise((resolve) => {
+        reader.readEntries(async (entries) => {
+          for await (const entry of entries) {
+            if (entry.isFile) {
+              const file = await getFileInSubDirectory(
+                entry as FileSystemFileEntry
+              );
+              files.push({ file, relativePath: entry.fullPath.slice(1) });
+              continue;
+            }
 
-  for await (const item of Array.from(items)) {
-    const entry = item.webkitGetAsEntry();
+            await getEntries(entry as FileSystemDirectoryEntry);
+          }
+          resolve(entries);
+        });
+      });
+    };
 
-    // prechecker - 아무것도 없는 경우 null 예외 처리
-    if (!entry) {
-      files.push({ file: null, relativePath: "" });
-      continue;
+    /** 폴더 내부에 있는 모든 파일 or 폴더 정보 추출 */
+    const getEntries = async (directoryEntry: FileSystemDirectoryEntry) => {
+      const reader = directoryEntry.createReader();
+
+      const readEntries = async () => {
+        const entries = await readEntriesAsync(reader);
+        if (entries.length > 0) {
+          await readEntries();
+        }
+      };
+
+      await readEntries();
+    };
+
+    for (const item of Array.from(items)) {
+      const entry = item.webkitGetAsEntry();
+
+      // prechecker - 아무것도 없는 경우 null 예외 처리
+      if (!entry) {
+        files.push({ file: null, relativePath: "" });
+        continue;
+      }
+
+      // 파일인 경우
+      if (entry.isFile) {
+        files.push({ file: item.getAsFile(), relativePath: entry.name });
+        continue;
+      }
+
+      // 폴더인 경우
+      getEntries(entry as FileSystemDirectoryEntry);
     }
 
-    // 파일인 경우
-    if (entry.isFile) {
-      files.push({ file: item.getAsFile(), relativePath: entry.name });
-      continue;
-    }
-
-    // 폴더인 경우
-    await getEntries(entry as FileSystemDirectoryEntry);
-  }
-
-  return files;
+    resolve(files);
+  });
 };
