@@ -2,7 +2,7 @@
   "name": "file-upload-preprocessor",
   "version": "1.0.0",
   "description": "File processing preprocessor for file upload",
-  "main": "index.ts",
+  "main": "dist/index.min.js",
   "scripts": {
     "test": "jest --watchAll --verbose --coverage",
     "test:ci": "jest",
@@ -12,8 +12,16 @@
     "type": "git",
     "url": "git+https://github.com/wally-wally/file-upload-preprocessor.git"
   },
-  "keywords": [],
-  "author": "wally-wally",
+  "keywords": [
+    "file",
+    "upload",
+    "file-upload",
+    "preprocessor"
+  ],
+  "author": {
+    "name": "wally-wally",
+    "email": "wallys0213@gmail.com"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/wally-wally/file-upload-preprocessor/issues"
